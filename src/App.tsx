@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   AlertCircle, 
@@ -21,21 +21,35 @@ import {
 export default function App() {
   const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes
   const [progress, setProgress] = useState(83);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
 
-    // Vturb Script Integration
-    const script = document.createElement("script");
-    script.src = "https://scripts.converteai.net/1b23d824-f7d5-46ac-8edc-700038ffb33d/players/694460cd39b76fcf0294a0f5/v4/player.js";
-    script.async = true;
-    document.head.appendChild(script);
+    // Vturb Script Integration - More robust loading
+    const scriptId = "vturb-script-694460cd39b76fcf0294a0f5";
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement("script");
+      script.id = scriptId;
+      script.src = "https://scripts.converteai.net/1b23d824-f7d5-46ac-8edc-700038ffb33d/players/694460cd39b76fcf0294a0f5/v4/player.js";
+      script.async = true;
+      // Adding crossOrigin to help with "Script error" debugging
+      script.crossOrigin = "anonymous"; 
+      document.head.appendChild(script);
+    }
+
+    // Manual injection of the player to avoid React reconciliation issues with circular structures
+    if (playerContainerRef.current && !playerContainerRef.current.querySelector('vturb-smartplayer')) {
+      const player = document.createElement('vturb-smartplayer');
+      player.id = 'vid-694460cd39b76fcf0294a0f5';
+      player.setAttribute('style', 'display: block; margin: 0 auto; width: 100%;');
+      playerContainerRef.current.appendChild(player);
+    }
 
     return () => {
       clearInterval(timer);
-      document.head.removeChild(script);
     };
   }, []);
 
@@ -80,16 +94,10 @@ export default function App() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900/50 orange-glow group"
+            className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900/50 orange-glow group min-h-[200px] flex items-center justify-center"
           >
-            {/* Vturb Smart Player */}
-            <div className="w-full">
-              <div 
-                dangerouslySetInnerHTML={{ 
-                  __html: `<vturb-smartplayer id="vid-694460cd39b76fcf0294a0f5" style="display: block; margin: 0 auto; width: 100%; aspect-ratio: 16/9;"></vturb-smartplayer>` 
-                }} 
-              />
-            </div>
+            {/* Vturb Smart Player Container */}
+            <div className="w-full" ref={playerContainerRef} />
             
             <div className="absolute top-4 left-4 flex items-center gap-2 bg-black/60 px-3 py-1.5 rounded-full border border-white/10 z-10 pointer-events-none">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
