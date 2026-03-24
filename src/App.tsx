@@ -40,33 +40,6 @@ export default function App() {
       document.head.appendChild(script);
     }
 
-    // Hotmart Sales Funnel Integration
-    const hotmartScriptId = "hotmart-sales-funnel-script";
-    if (!document.getElementById(hotmartScriptId)) {
-      const script = document.createElement("script");
-      script.id = hotmartScriptId;
-      script.src = "https://checkout.hotmart.com/lib/hotmart-checkout-elements.js";
-      script.async = true;
-      script.onload = () => {
-        // @ts-ignore
-        if (window.checkoutElements) {
-          // @ts-ignore
-          window.checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel');
-        }
-      };
-      document.head.appendChild(script);
-    } else {
-      // @ts-ignore
-      if (window.checkoutElements) {
-        try {
-          // @ts-ignore
-          window.checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel');
-        } catch (e) {
-          // Ignore if already mounted
-        }
-      }
-    }
-
     // Manual injection of the player to avoid React reconciliation issues with circular structures
     if (playerContainerRef.current && !playerContainerRef.current.querySelector('vturb-smartplayer')) {
       const player = document.createElement('vturb-smartplayer');
@@ -103,6 +76,27 @@ export default function App() {
       clearInterval(timer);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isDelayedContentVisible) return;
+
+    const container = document.getElementById('hotmart-sales-funnel-wrapper');
+    if (container && !document.getElementById('hotmart-script-loaded')) {
+      // Replicating the exact script load and setup from the user's snippet
+      const scriptLoad = document.createElement('script');
+      scriptLoad.id = 'hotmart-script-loaded';
+      scriptLoad.src = "https://checkout.hotmart.com/lib/hotmart-checkout-elements.js";
+      scriptLoad.async = true;
+      
+      scriptLoad.onload = () => {
+        const scriptSetup = document.createElement('script');
+        scriptSetup.innerHTML = "checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel')";
+        container.appendChild(scriptSetup);
+      };
+      
+      container.appendChild(scriptLoad);
+    }
+  }, [isDelayedContentVisible]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -266,17 +260,11 @@ export default function App() {
               </section>
 
               {/* HOTMART - Sales Funnel Widget */}
-              <section className="max-w-3xl mx-auto">
-                <div id="<!-- HOTMART - Sales Funnel Widget -->
-<!--- sales funnel container --->
-<div id="hotmart-sales-funnel"></div>
-
-<!--- script load and setup --->
-<script src="https://checkout.hotmart.com/lib/hotmart-checkout-elements.js"></script>
-<script>
-checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel')
-</script>
-<!-- HOTMART - Sales Funnel Widget -->" className="min-h-[200px] w-full"></div>
+              <section className="max-w-3xl mx-auto" id="hotmart-sales-funnel-wrapper">
+                {/* <!-- HOTMART - Sales Funnel Widget --> */}
+                {/* <!--- sales funnel container ---> */}
+                <div id="hotmart-sales-funnel" className="min-h-[200px] w-full"></div>
+                {/* <!-- HOTMART - Sales Funnel Widget --> */}
               </section>
 
               {/* Guarantee Section */}
