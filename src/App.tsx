@@ -156,18 +156,10 @@ export default function App() {
             </div>
           </motion.div>
 
-          <AnimatePresence>
-            {isDelayedContentVisible && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-center gap-2 text-zinc-500 text-sm italic"
-              >
-                <Volume2 className="w-4 h-4" />
-                <p>Por favor, verifica que tu sonido esté activado para no perderte nada.</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className="flex items-center justify-center gap-2 text-zinc-500 text-sm italic">
+            <Volume2 className="w-4 h-4" />
+            <p>Por favor, verifica que tu sonido esté activado para no perderte nada.</p>
+          </div>
         </section>
 
         <AnimatePresence>
@@ -275,7 +267,16 @@ export default function App() {
 
               {/* HOTMART - Sales Funnel Widget */}
               <section className="max-w-3xl mx-auto">
-                <div id="hotmart-sales-funnel" className="min-h-[200px] w-full"></div>
+                <div id="<!-- HOTMART - Sales Funnel Widget -->
+<!--- sales funnel container --->
+<div id="hotmart-sales-funnel"></div>
+
+<!--- script load and setup --->
+<script src="https://checkout.hotmart.com/lib/hotmart-checkout-elements.js"></script>
+<script>
+checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel')
+</script>
+<!-- HOTMART - Sales Funnel Widget -->" className="min-h-[200px] w-full"></div>
               </section>
 
               {/* Guarantee Section */}
