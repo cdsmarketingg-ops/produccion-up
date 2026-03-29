@@ -70,12 +70,12 @@ export default function App() {
         scriptLoad.onload = () => {
           const scriptSetup = document.createElement('script');
           scriptSetup.innerHTML = "if(window.checkoutElements) { try { checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel'); } catch(e) { console.error(e); } }";
-          hotmartWrapperRef.current?.appendChild(scriptSetup);
+          document.body.appendChild(scriptSetup);
         };
         
-        hotmartWrapperRef.current.appendChild(scriptLoad);
+        document.body.appendChild(scriptLoad);
       }
-    }, 100);
+    }, 200);
 
     return () => clearTimeout(timeoutId);
   }, []);
@@ -143,57 +143,6 @@ export default function App() {
         </section>
 
         <div className="space-y-16 md:space-y-24">
-          {/* Upsell Hook */}
-          <section className="text-center space-y-12">
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="space-y-4"
-            >
-              <h3 className="text-2xl md:text-3xl font-light">¿Quieres el sonido más deseado del mundo en tus manos?</h3>
-            </motion.div>
-
-            {/* Product Showcase */}
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-red-600 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
-              <div className="relative bg-[#0a0a0a] rounded-3xl border border-white/5 overflow-hidden">
-                <div className="grid md:grid-cols-2 items-center">
-                  <div className="p-6 md:p-12 space-y-6 text-left">
-                    <div className="flex items-center gap-2 text-orange-500">
-                      <Music className="w-5 h-5" />
-                      <span className="text-xs font-bold uppercase tracking-[0.2em]">Nord Stage 4 Collection</span>
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-bold leading-tight">
-                      Pack de Pianos <br />
-                      <span className="text-zinc-500">Nord Stage 4</span>
-                    </h2>
-                    <p className="text-zinc-400 leading-relaxed text-sm md:text-base">
-                      Lleva el realismo y la potencia del Nord Stage 4 a tu setup. Timbres de piano Hammer Action 80 muestreados con la máxima fidelidad para tus presentaciones en vivo y grabaciones.
-                    </p>
-                    <ul className="space-y-3">
-                      {["Pianos Hammer Action 80", "Capas y Texturas Cinematográficas", "Optimizado para latencia cero"].map((item, i) => (
-                        <li key={i} className="flex items-center gap-3 text-sm text-zinc-300">
-                          <CheckCircle className="w-4 h-4 text-orange-500" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="relative h-full min-h-[250px] md:min-h-[400px]">
-                    <img 
-                      src="https://eliabcamposteclas.com/wp-content/uploads/2026/03/ChatGPT-Image-28-de-mar.-de-2026-20_10_14.jpg" 
-                      alt="Nord Stage 4 Piano Sound" 
-                      className="absolute inset-0 w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent md:bg-gradient-to-l" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
           {/* Pricing & Scarcity */}
           <section className="text-center space-y-8 md:space-y-12 py-8 md:py-12">
             <div className="space-y-4">
@@ -242,8 +191,59 @@ export default function App() {
           <section className="max-w-3xl mx-auto" id="hotmart-sales-funnel-wrapper" ref={hotmartWrapperRef}>
             {/* <!-- HOTMART - Sales Funnel Widget --> */}
             {/* <!--- sales funnel container ---> */}
-            <div id="hotmart-sales-funnel" className="min-h-[200px] w-full"></div>
+            <div id="hotmart-sales-funnel"></div>
             {/* <!-- HOTMART - Sales Funnel Widget --> */}
+          </section>
+
+          {/* Upsell Hook & Product Showcase */}
+          <section className="text-center space-y-12">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="space-y-4"
+            >
+              <h3 className="text-2xl md:text-3xl font-light">¿Quieres el sonido más deseado del mundo en tus manos?</h3>
+            </motion.div>
+
+            {/* Product Showcase */}
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-red-600 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
+              <div className="relative bg-[#0a0a0a] rounded-3xl border border-white/5 overflow-hidden">
+                <div className="grid md:grid-cols-2 items-center">
+                  <div className="p-6 md:p-12 space-y-6 text-left">
+                    <div className="flex items-center gap-2 text-orange-500">
+                      <Music className="w-5 h-5" />
+                      <span className="text-xs font-bold uppercase tracking-[0.2em]">Nord Stage 4 Collection</span>
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-bold leading-tight">
+                      Pack de Pianos <br />
+                      <span className="text-zinc-500">Nord Stage 4</span>
+                    </h2>
+                    <p className="text-zinc-400 leading-relaxed text-sm md:text-base">
+                      Lleva el realismo y la potencia del Nord Stage 4 a tu setup. Timbres de piano Hammer Action 80 muestreados con la máxima fidelidad para tus presentaciones en vivo y grabaciones.
+                    </p>
+                    <ul className="space-y-3">
+                      {["Pianos Hammer Action 80", "Capas y Texturas Cinematográficas", "Optimizado para latencia cero"].map((item, i) => (
+                        <li key={i} className="flex items-center gap-3 text-sm text-zinc-300">
+                          <CheckCircle className="w-4 h-4 text-orange-500" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="relative h-full min-h-[250px] md:min-h-[400px]">
+                    <img 
+                      src="https://eliabcamposteclas.com/wp-content/uploads/2026/03/ChatGPT-Image-28-de-mar.-de-2026-20_10_14.jpg" 
+                      alt="Nord Stage 4 Piano Sound" 
+                      className="absolute inset-0 w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent md:bg-gradient-to-l" />
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
 
           {/* Guarantee Section */}
