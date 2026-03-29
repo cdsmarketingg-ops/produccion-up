@@ -10,8 +10,8 @@
   --bg-color: #050505;
   --text-primary: #ffffff;
   --text-secondary: #a1a1aa;
-  --accent-color: #f97316; /* Vibrant orange from the image, but refined */
-  --accent-glow: rgba(249, 115, 22, 0.2);
+  --accent-color: #ef4444; /* Nord Red */
+  --accent-glow: rgba(239, 68, 68, 0.2);
 }
 
 body {
@@ -34,5 +34,9 @@ body {
 }
 
 .orange-glow {
+  box-shadow: 0 0 40px rgba(249, 115, 22, 0.2);
+}
+
+.red-glow {
   box-shadow: 0 0 40px var(--accent-glow);
 }
