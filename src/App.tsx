@@ -29,19 +29,32 @@ export default function App() {
     }, 1000);
 
     // Vturb Script Integration - More robust loading
-    const scriptId = "vturb-script-69c86de05610b6167ac4ff63";
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement("script");
-      script.id = scriptId;
-      script.src = "https://scripts.converteai.net/1b23d824-f7d5-46ac-8edc-700038ffb33d/players/69c86de05610b6167ac4ff63/v4/player.js";
-      script.async = true;
-      // Adding crossOrigin to help with "Script error" debugging
-      script.crossOrigin = "anonymous"; 
-      document.head.appendChild(script);
-    }
+    const loadVturb = () => {
+      if (playerContainerRef.current) {
+        // Clear and set up player element
+        playerContainerRef.current.innerHTML = '<vturb-smartplayer id="vid-69c86de05610b6167ac4ff63" style="display: block; margin: 0 auto; width: 100%;"></vturb-smartplayer>';
+
+        // Load script
+        const scriptId = "vturb-script-69c86de05610b6167ac4ff63";
+        const existingScript = document.getElementById(scriptId);
+        if (existingScript) {
+          existingScript.remove();
+        }
+        
+        const script = document.createElement("script");
+        script.id = scriptId;
+        script.src = "https://scripts.converteai.net/1b23d824-f7d5-46ac-8edc-700038ffb33d/players/69c86de05610b6167ac4ff63/v4/player.js";
+        script.async = true;
+        document.head.appendChild(script);
+      }
+    };
+
+    // Use a small delay to ensure the DOM element is rendered by React
+    const vturbTimeout = setTimeout(loadVturb, 300);
 
     return () => {
       clearInterval(timer);
+      clearTimeout(vturbTimeout);
     };
   }, []);
 
@@ -105,18 +118,16 @@ export default function App() {
           </motion.div>
 
           <motion.div 
+            key="vturb-player-container"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900/50 orange-glow group aspect-video flex items-center justify-center"
+            className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900/50 orange-glow group flex items-center justify-center min-h-[300px] md:min-h-[480px]"
           >
-            {/* Vturb Smart Player Container - Using dangerouslySetInnerHTML to avoid React reconciliation issues with custom elements */}
+            {/* Vturb Smart Player Container */}
             <div 
-              className="w-full h-full" 
+              className="w-full" 
               ref={playerContainerRef}
-              dangerouslySetInnerHTML={{ 
-                __html: '<vturb-smartplayer id="vid-69c86de05610b6167ac4ff63" style="display: block; margin: 0 auto; width: 100%; height: 100%;"></vturb-smartplayer>' 
-              }}
             />
             
             <div className="absolute top-4 left-4 flex items-center gap-2 bg-black/60 px-3 py-1.5 rounded-full border border-white/10 z-10 pointer-events-none">
@@ -171,7 +182,7 @@ export default function App() {
                   </div>
                   <div className="relative h-full min-h-[250px] md:min-h-[400px]">
                     <img 
-                      src="https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?q=80&w=2070&auto=format&fit=crop" 
+                      src="https://eliabcamposteclas.com/wp-content/uploads/2026/03/ChatGPT-Image-28-de-mar.-de-2026-20_10_14.jpg" 
                       alt="Nord Stage 4 Piano Sound" 
                       className="absolute inset-0 w-full h-full object-cover"
                       referrerPolicy="no-referrer"
