@@ -60,26 +60,35 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    // Use a small timeout to ensure the DOM element is rendered by React
+    if (!showContent) return;
+
+    // Use a small timeout to ensure the DOM element is rendered by React after showContent is true
     const timeoutId = setTimeout(() => {
-      if (hotmartWrapperRef.current && !document.getElementById('hotmart-script-loaded')) {
-        const scriptLoad = document.createElement('script');
-        scriptLoad.id = 'hotmart-script-loaded';
-        scriptLoad.src = "https://checkout.hotmart.com/lib/hotmart-checkout-elements.js";
-        scriptLoad.async = true;
-        
-        scriptLoad.onload = () => {
+      if (hotmartWrapperRef.current) {
+        if (!document.getElementById('hotmart-script-loaded')) {
+          const scriptLoad = document.createElement('script');
+          scriptLoad.id = 'hotmart-script-loaded';
+          scriptLoad.src = "https://checkout.hotmart.com/lib/hotmart-checkout-elements.js";
+          scriptLoad.async = true;
+          
+          scriptLoad.onload = () => {
+            const scriptSetup = document.createElement('script');
+            scriptSetup.innerHTML = "if(window.checkoutElements) { try { checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel'); } catch(e) { console.error(e); } }";
+            document.body.appendChild(scriptSetup);
+          };
+          
+          document.body.appendChild(scriptLoad);
+        } else {
+          // Script already loaded, just run the setup
           const scriptSetup = document.createElement('script');
           scriptSetup.innerHTML = "if(window.checkoutElements) { try { checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel'); } catch(e) { console.error(e); } }";
           document.body.appendChild(scriptSetup);
-        };
-        
-        document.body.appendChild(scriptLoad);
+        }
       }
-    }, 200);
+    }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, []);
+  }, [showContent]);
 
   useEffect(() => {
     const delayTimer = setTimeout(() => {
