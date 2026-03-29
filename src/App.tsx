@@ -22,6 +22,7 @@ export default function App() {
   const [progress, setProgress] = useState(83);
   const [isDelayedContentVisible, setIsDelayedContentVisible] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement>(null);
+  const hotmartWrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -40,16 +41,8 @@ export default function App() {
       document.head.appendChild(script);
     }
 
-    // Manual injection of the player to avoid React reconciliation issues with circular structures
-    if (playerContainerRef.current && !playerContainerRef.current.querySelector('vturb-smartplayer')) {
-      const player = document.createElement('vturb-smartplayer');
-      player.id = 'vid-694460cd39b76fcf0294a0f5';
-      player.setAttribute('style', 'display: block; margin: 0 auto; width: 100%;');
-      playerContainerRef.current.appendChild(player);
-    }
-
     // Delay Logic Integration
-    const SECONDS_TO_DISPLAY = 80;
+    const SECONDS_TO_DISPLAY = 5;
     let released = false;
 
     const waitForPlayer = () => {
@@ -80,22 +73,26 @@ export default function App() {
   useEffect(() => {
     if (!isDelayedContentVisible) return;
 
-    const container = document.getElementById('hotmart-sales-funnel-wrapper');
-    if (container && !document.getElementById('hotmart-script-loaded')) {
-      // Replicating the exact script load and setup from the user's snippet
-      const scriptLoad = document.createElement('script');
-      scriptLoad.id = 'hotmart-script-loaded';
-      scriptLoad.src = "https://checkout.hotmart.com/lib/hotmart-checkout-elements.js";
-      scriptLoad.async = true;
-      
-      scriptLoad.onload = () => {
-        const scriptSetup = document.createElement('script');
-        scriptSetup.innerHTML = "checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel')";
-        container.appendChild(scriptSetup);
-      };
-      
-      container.appendChild(scriptLoad);
-    }
+    // Use a small timeout to ensure the DOM element is rendered by React
+    const timeoutId = setTimeout(() => {
+      if (hotmartWrapperRef.current && !document.getElementById('hotmart-script-loaded')) {
+        const scriptLoad = document.createElement('script');
+        scriptLoad.id = 'hotmart-script-loaded';
+        scriptLoad.src = "https://checkout.hotmart.com/lib/hotmart-checkout-elements.js";
+        scriptLoad.async = true;
+        
+        scriptLoad.onload = () => {
+          const scriptSetup = document.createElement('script');
+          // Added a check for checkoutElements to be safe
+          scriptSetup.innerHTML = "if(window.checkoutElements) { try { checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel'); } catch(e) { console.error(e); } }";
+          hotmartWrapperRef.current?.appendChild(scriptSetup);
+        };
+        
+        hotmartWrapperRef.current.appendChild(scriptLoad);
+      }
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [isDelayedContentVisible]);
 
   const formatTime = (seconds: number) => {
@@ -141,8 +138,14 @@ export default function App() {
             transition={{ delay: 0.2 }}
             className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900/50 orange-glow group min-h-[200px] flex items-center justify-center"
           >
-            {/* Vturb Smart Player Container */}
-            <div className="w-full" ref={playerContainerRef} />
+            {/* Vturb Smart Player Container - Using dangerouslySetInnerHTML to avoid React reconciliation issues with custom elements */}
+            <div 
+              className="w-full" 
+              ref={playerContainerRef}
+              dangerouslySetInnerHTML={{ 
+                __html: '<vturb-smartplayer id="vid-694460cd39b76fcf0294a0f5" style="display: block; margin: 0 auto; width: 100%;"></vturb-smartplayer>' 
+              }}
+            />
             
             <div className="absolute top-4 left-4 flex items-center gap-2 bg-black/60 px-3 py-1.5 rounded-full border border-white/10 z-10 pointer-events-none">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -260,7 +263,7 @@ export default function App() {
               </section>
 
               {/* HOTMART - Sales Funnel Widget */}
-              <section className="max-w-3xl mx-auto" id="hotmart-sales-funnel-wrapper">
+              <section className="max-w-3xl mx-auto" id="hotmart-sales-funnel-wrapper" ref={hotmartWrapperRef}>
                 {/* <!-- HOTMART - Sales Funnel Widget --> */}
                 {/* <!--- sales funnel container ---> */}
                 <div id="hotmart-sales-funnel" className="min-h-[200px] w-full"></div>
