@@ -65,7 +65,12 @@ export default function App() {
     // Use a small timeout to ensure the DOM element is rendered by React after showContent is true
     const timeoutId = setTimeout(() => {
       if (hotmartWrapperRef.current) {
-        if (!document.getElementById('hotmart-script-loaded')) {
+        // Remove old scripts if they exist to ensure clean initialization
+        const oldScript = document.getElementById('hotmart-script-loaded');
+        const oldSetup = document.getElementById('hotmart-setup-loaded');
+        if (oldSetup) oldSetup.remove();
+        
+        if (!oldScript) {
           const scriptLoad = document.createElement('script');
           scriptLoad.id = 'hotmart-script-loaded';
           scriptLoad.src = "https://checkout.hotmart.com/lib/hotmart-checkout-elements.js";
@@ -73,19 +78,21 @@ export default function App() {
           
           scriptLoad.onload = () => {
             const scriptSetup = document.createElement('script');
-            scriptSetup.innerHTML = "if(window.checkoutElements) { try { checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel'); } catch(e) { console.error(e); } }";
+            scriptSetup.id = 'hotmart-setup-loaded';
+            scriptSetup.innerHTML = "try { checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel'); } catch(e) { console.error('Hotmart Init Error:', e); }";
             document.body.appendChild(scriptSetup);
           };
           
           document.body.appendChild(scriptLoad);
         } else {
-          // Script already loaded, just run the setup
+          // Script already loaded, just run the setup again for the new container
           const scriptSetup = document.createElement('script');
-          scriptSetup.innerHTML = "if(window.checkoutElements) { try { checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel'); } catch(e) { console.error(e); } }";
+          scriptSetup.id = 'hotmart-setup-loaded';
+          scriptSetup.innerHTML = "try { checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel'); } catch(e) { console.error('Hotmart Mount Error:', e); }";
           document.body.appendChild(scriptSetup);
         }
       }
-    }, 500);
+    }, 800); // Increased timeout slightly for better stability
 
     return () => clearTimeout(timeoutId);
   }, [showContent]);
