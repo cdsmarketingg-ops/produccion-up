@@ -70,29 +70,31 @@ export default function App() {
         const oldSetup = document.getElementById('hotmart-setup-loaded');
         if (oldSetup) oldSetup.remove();
         
-        if (!oldScript) {
-          const scriptLoad = document.createElement('script');
-          scriptLoad.id = 'hotmart-script-loaded';
-          scriptLoad.src = "https://checkout.hotmart.com/lib/hotmart-checkout-elements.js";
-          scriptLoad.async = true;
-          
-          scriptLoad.onload = () => {
-            const scriptSetup = document.createElement('script');
-            scriptSetup.id = 'hotmart-setup-loaded';
-            scriptSetup.innerHTML = "try { checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel'); } catch(e) { console.error('Hotmart Init Error:', e); }";
-            document.body.appendChild(scriptSetup);
-          };
-          
-          document.body.appendChild(scriptLoad);
-        } else {
-          // Script already loaded, just run the setup again for the new container
+        const scriptLoad = document.createElement('script');
+        scriptLoad.id = 'hotmart-script-loaded';
+        scriptLoad.src = "https://checkout.hotmart.com/lib/hotmart-checkout-elements.js";
+        scriptLoad.async = true;
+        
+        scriptLoad.onload = () => {
           const scriptSetup = document.createElement('script');
           scriptSetup.id = 'hotmart-setup-loaded';
-          scriptSetup.innerHTML = "try { checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel'); } catch(e) { console.error('Hotmart Mount Error:', e); }";
+          scriptSetup.innerHTML = `
+            if (window.checkoutElements) {
+              try { 
+                checkoutElements.init('salesFunnel').mount('#hotmart-sales-funnel'); 
+              } catch(e) { 
+                console.error('Hotmart Init Error:', e); 
+              }
+            } else {
+              console.error('Hotmart Elements not found');
+            }
+          `;
           document.body.appendChild(scriptSetup);
-        }
+        };
+        
+        document.body.appendChild(scriptLoad);
       }
-    }, 800); // Increased timeout slightly for better stability
+    }, 1000); // Increased timeout for stability after motion animation
 
     return () => clearTimeout(timeoutId);
   }, [showContent]);
@@ -179,9 +181,9 @@ export default function App() {
                 <div className="space-y-4">
                   <h4 className="text-lg md:text-xl text-zinc-400">Inversión única y exclusiva:</h4>
                   <div className="flex flex-col items-center gap-2">
-                    <span className="text-zinc-600 line-through text-xl md:text-2xl">$97.00</span>
+                    <span className="text-zinc-600 line-through text-xl md:text-2xl">U$67.00</span>
                     <div className="text-5xl md:text-8xl font-black tracking-tighter">
-                      $24<span className="text-orange-500">.00</span>
+                      U$14<span className="text-orange-500">.90</span>
                     </div>
                     <p className="text-orange-500 font-bold uppercase tracking-widest text-xs md:text-sm">¡Oferta de Lanzamiento!</p>
                   </div>
@@ -316,7 +318,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-white/5 py-12 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-zinc-600 text-sm">
+        <div className="max-w-5xl mx-auto text-center text-zinc-600 text-sm">
           <p>© 2026 Eliab Campos Teclas. Todos los derechos reservados.</p>
         </div>
       </footer>
