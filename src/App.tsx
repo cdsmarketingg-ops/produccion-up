@@ -29,53 +29,105 @@ export default function App() {
       setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
 
-    // Vturb Script Integration - More robust loading
-    const loadVturb = () => {
+    // VeloTurb Player Integration
+    const loadVeloTurb = () => {
       if (playerContainerRef.current) {
-        // Clear and set up player element
-        playerContainerRef.current.innerHTML = '<vturb-smartplayer id="vid-69c86de05610b6167ac4ff63" style="display: block; margin: 0 auto; width: 100%;"></vturb-smartplayer>';
+        // Insert VeloTurb container element exactly as requested
+        playerContainerRef.current.innerHTML = `
+          <div style="display: block; width: 100%; max-width: 100%; margin: 0 auto; clear: both; flex: 0 0 100%;">
+            <div id="veloturb-vt_vsl_dxzxwtq" 
+                 data-video-id="vt_vsl_dxzxwtq" 
+                 data-src="https://vz-de50afce-82d.b-cdn.net/0d8cc873-6004-4d72-96e6-34afee90fc15/playlist.m3u8" 
+                 data-type="hls" 
+                 data-bunny-library-id="802485" 
+                 data-bunny-video-id="0d8cc873-6004-4d72-96e6-34afee90fc15" 
+                 data-poster="https://vz-de50afce-82d.b-cdn.net/0d8cc873-6004-4d72-96e6-34afee90fc15/thumbnail.jpg" 
+                 data-pitch-delay="15" 
+                 data-primary-color="#E11D48" 
+                 data-autoplay-text="¡Tu video ya comenzó! Haz clic para escuchar el audio 🔊" 
+                 data-autoplay-theme="yellow" 
+                 data-resume="true" 
+                 data-resume-lang="es" 
+                 style="display: block; width: 100%; max-width: 100%; margin: 0 auto; clear: both; position: relative;">
+            </div>
+          </div>
+        `;
 
-        // Load script
-        const scriptId = "vturb-script-69c86de05610b6167ac4ff63";
-        const existingScript = document.getElementById(scriptId);
-        if (existingScript) {
-          existingScript.remove();
+        // Load or re-scan VeloTurb runtime script
+        const scriptId = "veloturb-player-script";
+        let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+        if (!script) {
+          script = document.createElement("script");
+          script.id = scriptId;
+          script.src = "https://velo-turb.vercel.app/player.js";
+          script.async = true;
+          script.onload = () => {
+            if ((window as any).VeloTurb?.scan) {
+              (window as any).VeloTurb.scan();
+            }
+          };
+          document.body.appendChild(script);
+        } else {
+          if ((window as any).VeloTurb?.scan) {
+            (window as any).VeloTurb.scan();
+          }
         }
-        
-        const script = document.createElement("script");
-        script.id = scriptId;
-        script.src = "https://scripts.converteai.net/1b23d824-f7d5-46ac-8edc-700038ffb33d/players/69c86de05610b6167ac4ff63/v4/player.js";
-        script.async = true;
-        document.head.appendChild(script);
       }
     };
 
-    // Use a small delay to ensure the DOM element is rendered by React
-    const vturbTimeout = setTimeout(loadVturb, 300);
+    const veloTimeout = setTimeout(loadVeloTurb, 200);
 
     return () => {
       clearInterval(timer);
-      clearTimeout(vturbTimeout);
+      clearTimeout(veloTimeout);
     };
   }, []);
 
+  // Delay logic to reveal the pitch/offer section
+  useEffect(() => {
+    // 1. Bypass delay for testing via URL param (?delay=false or ?preview=true)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("delay") === "false" || urlParams.get("preview") === "true") {
+      setShowContent(true);
+      return;
+    }
+
+    // 2. Listen to VeloTurb pitch delay event ('veloturb:pitch')
+    const handleVeloTurbPitch = () => {
+      setShowContent(true);
+    };
+    window.addEventListener("veloturb:pitch", handleVeloTurbPitch);
+
+    // 3. Monitor video playback currentTime (15 seconds pitch delay)
+    const videoCheckInterval = setInterval(() => {
+      const videoEl = document.querySelector<HTMLVideoElement>("#veloturb-vt_vsl_dxzxwtq video");
+      if (videoEl && videoEl.currentTime >= 15) {
+        setShowContent(true);
+      }
+    }, 500);
+
+    // 4. Fallback delay timer of 15 seconds (matching data-pitch-delay="15")
+    const fallbackTimer = setTimeout(() => {
+      setShowContent(true);
+    }, 15000);
+
+    return () => {
+      window.removeEventListener("veloturb:pitch", handleVeloTurbPitch);
+      clearInterval(videoCheckInterval);
+      clearTimeout(fallbackTimer);
+    };
+  }, []);
+
+  // Hotmart Sales Funnel Widget initialization
   useEffect(() => {
     if (!showContent) return;
 
-    // Use a small timeout to ensure the DOM element is rendered by React after showContent is true
     const timeoutId = setTimeout(() => {
       if (hotmartWrapperRef.current) {
-        // Remove old scripts if they exist to ensure clean initialization
-        const oldScript = document.getElementById('hotmart-script-loaded');
         const oldSetup = document.getElementById('hotmart-setup-loaded');
         if (oldSetup) oldSetup.remove();
-        
-        const scriptLoad = document.createElement('script');
-        scriptLoad.id = 'hotmart-script-loaded';
-        scriptLoad.src = "https://checkout.hotmart.com/lib/hotmart-checkout-elements.js";
-        scriptLoad.async = true;
-        
-        scriptLoad.onload = () => {
+
+        const runHotmartMount = () => {
           const scriptSetup = document.createElement('script');
           scriptSetup.id = 'hotmart-setup-loaded';
           scriptSetup.innerHTML = `
@@ -91,21 +143,23 @@ export default function App() {
           `;
           document.body.appendChild(scriptSetup);
         };
-        
-        document.body.appendChild(scriptLoad);
+
+        const existingScript = document.getElementById('hotmart-script-loaded');
+        if (!existingScript) {
+          const scriptLoad = document.createElement('script');
+          scriptLoad.id = 'hotmart-script-loaded';
+          scriptLoad.src = "https://checkout.hotmart.com/lib/hotmart-checkout-elements.js";
+          scriptLoad.async = true;
+          scriptLoad.onload = runHotmartMount;
+          document.body.appendChild(scriptLoad);
+        } else {
+          runHotmartMount();
+        }
       }
-    }, 1000); // Increased timeout for stability after motion animation
+    }, 600);
 
     return () => clearTimeout(timeoutId);
   }, [showContent]);
-
-  useEffect(() => {
-    const delayTimer = setTimeout(() => {
-      setShowContent(true);
-    }, 120000); // 120 seconds
-
-    return () => clearTimeout(delayTimer);
-  }, []);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -145,13 +199,13 @@ export default function App() {
           </motion.div>
 
           <motion.div 
-            key="vturb-player-container"
+            key="veloturb-player-container"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900/50 orange-glow group flex items-center justify-center min-h-[300px] md:min-h-[480px]"
+            className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900/50 orange-glow group flex items-center justify-center min-h-[280px] md:min-h-[460px]"
           >
-            {/* Vturb Smart Player Container */}
+            {/* VeloTurb Smart Player Container */}
             <div 
               className="w-full" 
               ref={playerContainerRef}
