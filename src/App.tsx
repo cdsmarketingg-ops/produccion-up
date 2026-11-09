@@ -42,7 +42,7 @@ export default function App() {
                  data-bunny-library-id="802485" 
                  data-bunny-video-id="0d8cc873-6004-4d72-96e6-34afee90fc15" 
                  data-poster="https://vz-de50afce-82d.b-cdn.net/0d8cc873-6004-4d72-96e6-34afee90fc15/thumbnail.jpg" 
-                 data-pitch-delay="15" 
+                 data-pitch-delay="120" 
                  data-primary-color="#E11D48" 
                  data-autoplay-text="¡Tu video ya comenzó! Haz clic para escuchar el audio 🔊" 
                  data-autoplay-theme="yellow" 
@@ -83,7 +83,7 @@ export default function App() {
     };
   }, []);
 
-  // Delay logic to reveal the pitch/offer section
+  // Delay logic to reveal the pitch/offer section based on video playback time (2 minutes = 120s)
   useEffect(() => {
     // 1. Bypass delay for testing via URL param (?delay=false or ?preview=true)
     const urlParams = new URLSearchParams(window.location.search);
@@ -92,29 +92,23 @@ export default function App() {
       return;
     }
 
-    // 2. Listen to VeloTurb pitch delay event ('veloturb:pitch')
+    // 2. Listen to VeloTurb pitch delay event ('veloturb:pitch', fires when video hits data-pitch-delay="120")
     const handleVeloTurbPitch = () => {
       setShowContent(true);
     };
     window.addEventListener("veloturb:pitch", handleVeloTurbPitch);
 
-    // 3. Monitor video playback currentTime (15 seconds pitch delay)
+    // 3. Monitor video playback currentTime directly (2 minutes = 120 seconds of video)
     const videoCheckInterval = setInterval(() => {
       const videoEl = document.querySelector<HTMLVideoElement>("#veloturb-vt_vsl_dxzxwtq video");
-      if (videoEl && videoEl.currentTime >= 15) {
+      if (videoEl && videoEl.currentTime >= 120) {
         setShowContent(true);
       }
     }, 500);
 
-    // 4. Fallback delay timer of 15 seconds (matching data-pitch-delay="15")
-    const fallbackTimer = setTimeout(() => {
-      setShowContent(true);
-    }, 15000);
-
     return () => {
       window.removeEventListener("veloturb:pitch", handleVeloTurbPitch);
       clearInterval(videoCheckInterval);
-      clearTimeout(fallbackTimer);
     };
   }, []);
 
